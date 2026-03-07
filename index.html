@@ -71,6 +71,23 @@ grid-template-columns:repeat(7,1fr);
 gap:6px;
 margin-top:8px
 }
+
+/* ANIMACION */
+.fade{
+animation:fade .5s ease;
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(10px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
 </style>
 </head>
 
@@ -133,7 +150,7 @@ const programaMes = {
 "2026-03-04":{manana:{hora:"09:30",encargado:"Mario Roco",territorio:"3",direccion:"Fam.Roco (Fortunato Valencia)",numero:"4231"}},
 "2026-03-05":{manana:{hora:"09:30",encargado:"Nestor U.",territorio:"19",direccion:"Fam.Aros (Pasaje 2)",numero:"4424"},tarde:{hora:"18:30",encargado:"Marco C.",territorio:"19",direccion:"Fam.Aros (Pasaje 2)",numero:"4424"}},
 "2026-03-06":{manana:{hora:"09:30",encargado:"Luis Piñones",territorio:"18",direccion:"Fam.Pires (Rio caquena Norte)",numero:"4120"},tarde:{hora:"18:30",encargado:"Eduardo P.",territorio:"18",direccion:"Fam.Pires (Rio caquena Norte)",numero:"4120"}},
-"2026-03-07":{manana:{hora:"10:00",encargado:"Benjamin M",territorio:"2 y 3",direccion:"Fam.Guerrero (Orozimbo Barboza)",numero:"4249"}},
+"2026-03-07":{manana:{hora:"09:30",encargado:"Benjamin M",territorio:"2 y 3",direccion:"Fam.Guerrero (Orozimbo Barboza)",numero:"4249"}},
 "2026-03-08":{manana:{hora:"11:30",encargado:"Hector C.",territorio:"-",direccion:"Salon Del Reino",numero:""}},
 "2026-03-09":{manana:{hora:"09:30",encargado:"Benjamin M.",territorio:"21",direccion:"Fam.Aros (Pasaje 2)",numero:"4424"},tarde:{hora:"18:30",encargado:"Edmundo J.",territorio:"21",direccion:"Fam.Aros (Pasaje 2)",numero:"4424"}},
 "2026-03-10":{manana:{hora:"09:30",encargado:"Luis Troncoso",territorio:"16",direccion:"Fam.Pires (Rio caquena Norte)",numero:"4120"},tarde:{hora:"18:30",encargado:"Nestor U.",territorio:"16",direccion:"Fam.Pires (Rio caquena Norte)",numero:"4120"}},
@@ -144,12 +161,40 @@ const programaMes = {
 "2026-03-15":{manana:{hora:"11:30",encargado:"Benjamin M",territorio:"-",direccion:"Salon Del Reino",numero:""}}
 };
 
+const modoBtn = document.getElementById("modoBtn");
+
+if("Notification" in window){
+Notification.requestPermission();
+}
+
+function notificarCambioDia(){
+if(Notification.permission==="granted"){
+new Notification("📅 Nuevo día",{body:"El programa ha cambiado al día de hoy"});
+}
+}
+
 function obtenerClaveActual(){
 const hoy = new Date();
 const año = hoy.getFullYear();
 const mes = String(hoy.getMonth()+1).padStart(2,"0");
 const dia = String(hoy.getDate()).padStart(2,"0");
 return `${año}-${mes}-${dia}`;
+}
+
+let diaActualGuardado = obtenerClaveActual();
+
+function revisarCambioDeDia(){
+const nuevoDia = obtenerClaveActual();
+
+if(nuevoDia !== diaActualGuardado){
+
+diaActualGuardado = nuevoDia;
+
+actualizarPrograma();
+cargarListaDias();
+notificarCambioDia();
+
+}
 }
 
 function actualizarPrograma(){
@@ -181,6 +226,10 @@ Object.values(d.tarde).forEach((v,i)=>document.getElementById(["th","te","tt","t
 }else{
 tardeSection.style.display="none";
 }
+
+const card=document.getElementById("programaDia");
+card.classList.remove("fade");
+setTimeout(()=>{card.classList.add("fade")},10);
 
 }
 
@@ -218,8 +267,7 @@ actualizarPrograma();
 cargarListaDias();
 
 setInterval(()=>{
-actualizarPrograma();
-cargarListaDias();
+revisarCambioDeDia();
 },60000);
 
 if(localStorage.getItem("modo")==="dark"){
@@ -238,5 +286,3 @@ modoBtn.textContent=document.body.classList.contains("dark")?"🌞":"🌙";
 
 </body>
 </html>
-
-
