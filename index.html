@@ -59,10 +59,40 @@ body.dark .dia-item{
 background:rgba(255,255,255,0.08)
 }
 
+.dia-item {
+  padding: 8px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(0,0,0,0.05);
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.3s ease; /* transición suave */
+}
+
+body.dark .dia-item {
+  background: rgba(255,255,255,0.08);
+}
+
+
+.dia-item:hover{
+transform:scale(1.05);
+}
+
+/* DÍA ACTUAL */
 .dia-hoy{
+background:#d1d5db;
+color:#111827;
+font-weight:700;
+border:2px solid var(--accent);
+transform:scale(1.08);
+}
+
+/* MODO OSCURO */
+body.dark .dia-hoy{
 background:var(--accent);
 color:white;
-font-weight:600
+border:none;
+box-shadow:0 0 10px rgba(52,211,153,0.6);
 }
 
 #listaDias{
@@ -86,6 +116,69 @@ to{
 opacity:1;
 transform:translateY(0);
 }
+}
+  
+/* ---------- DIA ACTUAL Y PUNTITO ---------- */
+.dia-item{
+  padding:8px 6px;
+  border-radius:10px;
+  cursor:pointer;
+  background:rgba(0,0,0,0.05);
+  font-size:14px;
+  text-align:center;
+  position: relative; /* necesario para ::after */
+  transition: all 0.4s ease;
+}
+
+.dia-hoy{
+  background: #d1d5db;  /* gris modo claro */
+  color: #111827;
+  font-weight: 600;
+}
+
+body.dark .dia-hoy{
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 10px var(--accent); /* glow sutil */
+}
+
+/* Puntito tipo Google debajo del día */
+.dia-hoy::after{
+  content:"";
+  display:block;
+  width:6px;
+  height:6px;
+  margin:4px auto 0;
+  border-radius:50%;
+  background-color: #6b7280; /* gris modo claro */
+  transition: all 0.4s ease;
+}
+
+body.dark .dia-hoy::after{
+  background-color: var(--accent); /* verde modo oscuro */
+}
+
+/* ---------- AVISO ANIMADO ---------- */
+#aviso {
+  display: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  transition: all 0.5s ease;
+  opacity: 0;
+  background-color: var(--accent);
+  color: white;
+}
+
+#aviso.show {
+  display: block;
+  opacity: 1;
 }
 
 </style>
@@ -218,17 +311,24 @@ return `${año}-${mes}-${dia}`;
 let diaActualGuardado = obtenerClaveActual();
 
 function revisarCambioDeDia(){
-const nuevoDia = obtenerClaveActual();
+    const nuevoDia = obtenerClaveActual();
 
-if(nuevoDia !== diaActualGuardado){
+    if(nuevoDia !== diaActualGuardado){
+        diaActualGuardado = nuevoDia;
+        actualizarPrograma();
+        cargarListaDias();
+        notificarCambioDia();
 
-diaActualGuardado = nuevoDia;
+        // mostrar aviso con animación
+        const aviso = document.getElementById("aviso");
+        aviso.textContent = "🔄 Programa actualizado para mañana";
+        aviso.classList.add("show");
 
-actualizarPrograma();
-cargarListaDias();
-notificarCambioDia();
-
-}
+        // ocultar después de 4 segundos
+        setTimeout(() => {
+            aviso.classList.remove("show");
+        }, 4000);
+    }
 }
 
 function actualizarPrograma(){
@@ -273,6 +373,34 @@ function cargarListaDias(){
 
 listaDias.innerHTML="";
 
+const inicio = "2026-03-30";
+const fin = "2026-04-12";
+
+const hoy = obtenerClaveActual();
+const claves = Object.keys(programaMes).sort();
+
+const filtrados = claves.filter(c => c >= inicio && c <= fin);
+
+filtrados.forEach(c=>{
+
+const d=document.createElement("div");
+d.className="dia-item";
+
+if(c===hoy){
+d.classList.add("dia-hoy");
+}
+
+d.textContent = c.split("-")[2];
+d.onclick = ()=>mostrarDia(c);
+
+listaDias.appendChild(d);
+
+});
+
+}
+
+listaDias.innerHTML="";
+
 const hoy=obtenerClaveActual();
 const diaNum=parseInt(hoy.split("-")[2]);
 
@@ -296,8 +424,6 @@ d.onclick=()=>mostrarDia(c);
 listaDias.appendChild(d);
 
 });
-
-}
 
 actualizarPrograma();
 cargarListaDias();
